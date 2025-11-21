@@ -21,6 +21,7 @@ import {
   TrendingUp,
   Calendar,
 } from 'lucide-react';
+import { DashboardSkeleton } from '@/components/ui/skeletons';
 
 const statusColors: Record<string, string> = {
   TODO: 'bg-slate-500',
@@ -86,11 +87,7 @@ export default function DashboardPage() {
   ];
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (

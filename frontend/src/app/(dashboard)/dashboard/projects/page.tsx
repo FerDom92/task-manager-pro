@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/dialog';
 import { ProjectCard } from '@/components/features/project-card';
 import { ProjectForm } from '@/components/features/project-form';
+import { ProjectListSkeleton } from '@/components/ui/skeletons';
+import { NoProjectsEmpty } from '@/components/ui/empty-state';
 import { projectsService, type CreateProjectData } from '@/services/projects';
 import type { Project } from '@/types';
 
@@ -71,20 +73,9 @@ export default function ProjectsPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-        </div>
+        <ProjectListSkeleton count={6} />
       ) : projects.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No projects found</p>
-          <Button
-            variant="outline"
-            className="mt-4"
-            onClick={() => setIsDialogOpen(true)}
-          >
-            Create your first project
-          </Button>
-        </div>
+        <NoProjectsEmpty onCreateClick={() => setIsDialogOpen(true)} />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {projects.map((project) => (

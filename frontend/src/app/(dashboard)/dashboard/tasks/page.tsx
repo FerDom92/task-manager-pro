@@ -19,6 +19,8 @@ import {
 } from '@/components/ui/dialog';
 import { TaskCard } from '@/components/features/task-card';
 import { TaskForm } from '@/components/features/task-form';
+import { TaskListSkeleton } from '@/components/ui/skeletons';
+import { NoTasksEmpty, NoResultsEmpty } from '@/components/ui/empty-state';
 import { tasksService, type TaskFilters } from '@/services/tasks';
 import { categoriesService } from '@/services/categories';
 import { permissionsService } from '@/services/permissions';
@@ -202,16 +204,13 @@ export default function TasksPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-        </div>
+        <TaskListSkeleton count={6} />
       ) : tasks.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No tasks found</p>
-          <Button variant="outline" className="mt-4" onClick={openCreateDialog}>
-            Create your first task
-          </Button>
-        </div>
+        search || filters.status || filters.priority ? (
+          <NoResultsEmpty searchTerm={search} />
+        ) : (
+          <NoTasksEmpty onCreateClick={openCreateDialog} />
+        )
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {tasks.map((task) => (
