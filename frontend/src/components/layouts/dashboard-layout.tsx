@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuthStore } from '@/store/auth';
+import { NotificationBell } from '@/components/features/notification-bell';
 import { useState } from 'react';
 
 const navigation = [
@@ -40,16 +41,24 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Mobile sidebar toggle */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center gap-4 bg-background border-b px-4 h-14">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
-        <span className="font-semibold">Task Manager Pro</span>
+      {/* Mobile header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between bg-background border-b px-4 h-14">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          <span className="font-semibold">Task Manager Pro</span>
+        </div>
+        <NotificationBell />
+      </div>
+
+      {/* Desktop header */}
+      <div className="hidden lg:flex fixed top-0 left-64 right-0 z-30 items-center justify-end bg-background border-b px-6 h-14">
+        <NotificationBell />
       </div>
 
       {/* Sidebar */}
@@ -126,7 +135,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Main content */}
-      <main className="lg:pl-64 pt-14 lg:pt-0">
+      <main className="lg:pl-64 pt-14">
         <div className="p-6">{children}</div>
       </main>
     </div>
