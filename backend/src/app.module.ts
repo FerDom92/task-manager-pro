@@ -10,6 +10,7 @@ import { CategoriesModule } from './categories/categories.module';
 import { ProjectsModule } from './projects/projects.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { PermissionsModule } from './common/permissions';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { NotificationsModule } from './notifications/notifications.module';
       envFilePath: '.env',
     }),
     PrismaModule,
+    PermissionsModule,
     AuthModule,
     UsersModule,
     TasksModule,

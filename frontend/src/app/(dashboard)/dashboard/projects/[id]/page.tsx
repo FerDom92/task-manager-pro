@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Settings, Users, Trash2 } from 'lucide-react';
+import { ArrowLeft, Settings, Users, Trash2, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -17,6 +17,7 @@ import { TaskCard } from '@/components/features/task-card';
 import { ProjectForm } from '@/components/features/project-form';
 import { projectsService, type CreateProjectData } from '@/services/projects';
 import type { Project, Task } from '@/types';
+import { useProjectRole, canManageProject, canDeleteProject } from '@/hooks/use-permissions';
 
 export default function ProjectDetailPage({
   params,
@@ -83,6 +84,10 @@ export default function ProjectDetailPage({
     );
   }
 
+  const userRole = useProjectRole(project?.members);
+  const canEdit = canManageProject(userRole);
+  const canDelete = canDeleteProject(userRole);
+
   if (!project) return null;
 
   const roleLabels: Record<string, string> = {
@@ -112,10 +117,18 @@ export default function ProjectDetailPage({
             <p className="text-muted-foreground">{project.description}</p>
           )}
         </div>
-        <Button variant="outline" onClick={() => setIsEditDialogOpen(true)}>
-          <Settings className="h-4 w-4 mr-2" />
-          Settings
-        </Button>
+        {canEdit && (
+          <Button variant="outline" onClick={() => setIsEditDialogOpen(true)}>
+            <Settings className="h-4 w-4 mr-2" />
+            Settings
+          </Button>
+        )}
+        {userRole && (
+          <Badge variant="outline" className="ml-2">
+            <ShieldAlert className="h-3 w-3 mr-1" />
+            {roleLabels[userRole]}
+          </Badge>
+        )}
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
@@ -173,21 +186,23 @@ export default function ProjectDetailPage({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-red-600">Danger Zone</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Button
-                variant="destructive"
-                className="w-full"
-                onClick={handleDeleteProject}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Project
-              </Button>
-            </CardContent>
-          </Card>
+          {canDelete && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-red-600">Danger Zone</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  variant="destructive"
+                  className="w-full"
+                  onClick={handleDeleteProject}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Project
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 

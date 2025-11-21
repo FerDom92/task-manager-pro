@@ -92,3 +92,18 @@ export interface RegisterDto {
   firstName?: string;
   lastName?: string;
 }
+
+export interface TaskPermissions {
+  canView: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
+  canAssign: boolean;
+}
+
+export interface ProjectPermissions {
+  canView: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
+  canManageMembers: boolean;
+  canCreateTasks: boolean;
+}

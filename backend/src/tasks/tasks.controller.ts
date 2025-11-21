@@ -12,12 +12,17 @@ import {
 import { TasksService } from './tasks.service';
 import { CreateTaskDto, UpdateTaskDto, FilterTasksDto } from './dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { TaskPermissionGuard, RequireTaskPermission } from '../common/guards/task-permission.guard';
+import { TaskAction, PermissionsService } from '../common/permissions/permissions.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @Controller('tasks')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, TaskPermissionGuard)
 export class TasksController {
-  constructor(private tasksService: TasksService) {}
+  constructor(
+    private tasksService: TasksService,
+    private permissionsService: PermissionsService,
+  ) {}
 
   @Post()
   create(@Body() dto: CreateTaskDto, @CurrentUser('id') userId: string) {
@@ -35,11 +40,18 @@ export class TasksController {
   }
 
   @Get(':id')
+  @RequireTaskPermission(TaskAction.VIEW)
   findOne(@Param('id') id: string, @CurrentUser('id') userId: string) {
     return this.tasksService.findOne(id, userId);
   }
 
+  @Get(':id/permissions')
+  async getPermissions(@Param('id') id: string, @CurrentUser('id') userId: string) {
+    return this.permissionsService.getTaskPermissions(userId, id);
+  }
+
   @Patch(':id')
+  @RequireTaskPermission(TaskAction.UPDATE)
   update(
     @Param('id') id: string,
     @Body() dto: UpdateTaskDto,
@@ -49,6 +61,7 @@ export class TasksController {
   }
 
   @Delete(':id')
+  @RequireTaskPermission(TaskAction.DELETE)
   delete(@Param('id') id: string, @CurrentUser('id') userId: string) {
     return this.tasksService.delete(id, userId);
   }

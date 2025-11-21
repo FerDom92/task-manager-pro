@@ -40,6 +40,7 @@ interface TaskFormProps {
   onSubmit: (data: TaskFormData) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
+  readOnly?: boolean;
 }
 
 export function TaskForm({
@@ -48,6 +49,7 @@ export function TaskForm({
   onSubmit,
   onCancel,
   isLoading,
+  readOnly = false,
 }: TaskFormProps) {
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
@@ -71,7 +73,7 @@ export function TaskForm({
             <FormItem>
               <FormLabel>Title</FormLabel>
               <FormControl>
-                <Input placeholder="Task title" {...field} />
+                <Input placeholder="Task title" {...field} disabled={readOnly} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -89,6 +91,7 @@ export function TaskForm({
                   placeholder="Task description (optional)"
                   rows={3}
                   {...field}
+                  disabled={readOnly}
                 />
               </FormControl>
               <FormMessage />
@@ -106,6 +109,7 @@ export function TaskForm({
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  disabled={readOnly}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -134,6 +138,7 @@ export function TaskForm({
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  disabled={readOnly}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -161,7 +166,7 @@ export function TaskForm({
               <FormItem>
                 <FormLabel>Due Date</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <Input type="date" {...field} disabled={readOnly} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -177,6 +182,7 @@ export function TaskForm({
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  disabled={readOnly}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -206,11 +212,13 @@ export function TaskForm({
 
         <div className="flex justify-end gap-2 pt-4">
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
+            {readOnly ? 'Close' : 'Cancel'}
           </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Saving...' : task ? 'Update Task' : 'Create Task'}
-          </Button>
+          {!readOnly && (
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? 'Saving...' : task ? 'Update Task' : 'Create Task'}
+            </Button>
+          )}
         </div>
       </form>
     </Form>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Plus, Search, Filter, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -21,14 +21,18 @@ import { TaskCard } from '@/components/features/task-card';
 import { TaskForm } from '@/components/features/task-form';
 import { tasksService, type TaskFilters } from '@/services/tasks';
 import { categoriesService } from '@/services/categories';
-import type { Task, Category } from '@/types';
+import { permissionsService } from '@/services/permissions';
+import type { Task, Category, TaskPermissions } from '@/types';
+import { useAuthStore } from '@/store/auth';
 
 export default function TasksPage() {
+  const { user } = useAuthStore();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>();
+  const [taskPermissions, setTaskPermissions] = useState<TaskPermissions | null>(null);
   const [filters, setFilters] = useState<TaskFilters>({
     page: 1,
     limit: 20,
@@ -101,9 +105,23 @@ export default function TasksPage() {
     }
   };
 
-  const openEditDialog = (task: Task) => {
+  const openEditDialog = async (task: Task) => {
     setSelectedTask(task);
+    setTaskPermissions(null);
     setIsDialogOpen(true);
+    try {
+      const perms = await permissionsService.getTaskPermissions(task.id);
+      setTaskPermissions(perms);
+    } catch (error) {
+      console.error('Failed to load permissions:', error);
+      // Default to checking if user is creator
+      setTaskPermissions({
+        canView: true,
+        canUpdate: task.createdById === user?.id,
+        canDelete: task.createdById === user?.id,
+        canAssign: task.createdById === user?.id,
+      });
+    }
   };
 
   const openCreateDialog = () => {
@@ -240,8 +258,9 @@ export default function TasksPage() {
             categories={categories}
             onSubmit={selectedTask ? handleUpdateTask : handleCreateTask}
             onCancel={() => setIsDialogOpen(false)}
+            readOnly={!!(selectedTask && taskPermissions && !taskPermissions.canUpdate)}
           />
-          {selectedTask && (
+          {selectedTask && taskPermissions?.canDelete && (
             <Button
               variant="destructive"
               className="w-full mt-2"
@@ -250,8 +269,14 @@ export default function TasksPage() {
                 setIsDialogOpen(false);
               }}
             >
+              <Trash2 className="h-4 w-4 mr-2" />
               Delete Task
             </Button>
+          )}
+          {selectedTask && taskPermissions && !taskPermissions.canDelete && (
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              Only the task creator or project admin can delete this task
+            </p>
           )}
         </DialogContent>
       </Dialog>

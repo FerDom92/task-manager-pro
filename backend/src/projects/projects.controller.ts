@@ -16,12 +16,17 @@ import {
   UpdateMemberRoleDto,
 } from './dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { ProjectPermissionGuard, RequireProjectPermission } from '../common/guards/project-permission.guard';
+import { ProjectAction, PermissionsService } from '../common/permissions/permissions.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @Controller('projects')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ProjectPermissionGuard)
 export class ProjectsController {
-  constructor(private projectsService: ProjectsService) {}
+  constructor(
+    private projectsService: ProjectsService,
+    private permissionsService: PermissionsService,
+  ) {}
 
   @Post()
   create(@Body() dto: CreateProjectDto, @CurrentUser('id') userId: string) {
@@ -34,11 +39,18 @@ export class ProjectsController {
   }
 
   @Get(':id')
+  @RequireProjectPermission(ProjectAction.VIEW)
   findOne(@Param('id') id: string, @CurrentUser('id') userId: string) {
     return this.projectsService.findOne(id, userId);
   }
 
+  @Get(':id/permissions')
+  async getPermissions(@Param('id') id: string, @CurrentUser('id') userId: string) {
+    return this.permissionsService.getProjectPermissions(userId, id);
+  }
+
   @Patch(':id')
+  @RequireProjectPermission(ProjectAction.UPDATE)
   update(
     @Param('id') id: string,
     @Body() dto: UpdateProjectDto,
@@ -48,11 +60,13 @@ export class ProjectsController {
   }
 
   @Delete(':id')
+  @RequireProjectPermission(ProjectAction.DELETE)
   delete(@Param('id') id: string, @CurrentUser('id') userId: string) {
     return this.projectsService.delete(id, userId);
   }
 
   @Post(':id/members')
+  @RequireProjectPermission(ProjectAction.MANAGE_MEMBERS)
   addMember(
     @Param('id') id: string,
     @Body() dto: AddMemberDto,
@@ -62,6 +76,7 @@ export class ProjectsController {
   }
 
   @Patch(':id/members/:memberId')
+  @RequireProjectPermission(ProjectAction.MANAGE_MEMBERS)
   updateMemberRole(
     @Param('id') id: string,
     @Param('memberId') memberId: string,
@@ -72,6 +87,7 @@ export class ProjectsController {
   }
 
   @Delete(':id/members/:memberId')
+  @RequireProjectPermission(ProjectAction.MANAGE_MEMBERS)
   removeMember(
     @Param('id') id: string,
     @Param('memberId') memberId: string,
@@ -81,6 +97,7 @@ export class ProjectsController {
   }
 
   @Get(':id/tasks')
+  @RequireProjectPermission(ProjectAction.VIEW)
   getProjectTasks(@Param('id') id: string, @CurrentUser('id') userId: string) {
     return this.projectsService.getProjectTasks(id, userId);
   }
