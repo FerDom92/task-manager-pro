@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Search, Filter, Trash2 } from 'lucide-react';
+import { Plus, Search, Filter, Trash2, LayoutGrid, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -21,11 +21,14 @@ import { TaskCard } from '@/components/features/task-card';
 import { TaskForm } from '@/components/features/task-form';
 import { TaskListSkeleton } from '@/components/ui/skeletons';
 import { NoTasksEmpty, NoResultsEmpty } from '@/components/ui/empty-state';
+import { KanbanBoard } from '@/components/tasks/KanbanBoard';
 import { tasksService, type TaskFilters } from '@/services/tasks';
 import { categoriesService } from '@/services/categories';
 import { permissionsService } from '@/services/permissions';
-import type { Task, Category, TaskPermissions } from '@/types';
+import type { Task, Category, TaskPermissions, TaskStatus } from '@/types';
 import { useAuthStore } from '@/store/auth';
+
+type ViewMode = 'grid' | 'kanban';
 
 export default function TasksPage() {
   const { user } = useAuthStore();
@@ -35,9 +38,10 @@ export default function TasksPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>();
   const [taskPermissions, setTaskPermissions] = useState<TaskPermissions | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [filters, setFilters] = useState<TaskFilters>({
     page: 1,
-    limit: 20,
+    limit: 100, // Higher limit for kanban view
   });
   const [search, setSearch] = useState('');
   const [meta, setMeta] = useState({ total: 0, totalPages: 0 });
@@ -131,6 +135,15 @@ export default function TasksPage() {
     setIsDialogOpen(true);
   };
 
+  const handleStatusChange = async (taskId: string, newStatus: TaskStatus) => {
+    try {
+      await tasksService.update(taskId, { status: newStatus });
+      loadTasks();
+    } catch (error) {
+      console.error('Failed to update task status:', error);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -140,10 +153,30 @@ export default function TasksPage() {
             {meta.total} task{meta.total !== 1 ? 's' : ''} total
           </p>
         </div>
-        <Button onClick={openCreateDialog}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Task
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="flex border rounded-md">
+            <Button
+              variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+              className="rounded-r-none"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'kanban' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('kanban')}
+              className="rounded-l-none"
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
+          <Button onClick={openCreateDialog}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Task
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4">
@@ -211,6 +244,12 @@ export default function TasksPage() {
         ) : (
           <NoTasksEmpty onCreateClick={openCreateDialog} />
         )
+      ) : viewMode === 'kanban' ? (
+        <KanbanBoard
+          tasks={tasks}
+          onStatusChange={handleStatusChange}
+          onTaskClick={openEditDialog}
+        />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {tasks.map((task) => (

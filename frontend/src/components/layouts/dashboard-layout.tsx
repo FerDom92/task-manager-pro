@@ -9,6 +9,7 @@ import {
   Settings,
   LogOut,
   Menu,
+  Keyboard,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,8 @@ import {
 import { useAuthStore } from '@/store/auth';
 import { NotificationBell } from '@/components/features/notification-bell';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { KeyboardShortcutsDialog } from '@/components/features/keyboard-shortcuts-dialog';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useState } from 'react';
 
 const navigation = [
@@ -35,6 +38,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+
+  useKeyboardShortcuts([
+    { key: '?', action: () => setShortcutsOpen(true), description: 'Show shortcuts' },
+  ]);
 
   const initials = user
     ? `${user.firstName?.[0] || ''}${user.lastName?.[0] || user.email[0]}`.toUpperCase()
@@ -62,6 +70,14 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
       {/* Desktop header */}
       <div className="hidden lg:flex fixed top-0 left-64 right-0 z-30 items-center justify-end bg-background border-b px-6 h-14 gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setShortcutsOpen(true)}
+          title="Keyboard shortcuts (?)"
+        >
+          <Keyboard className="h-4 w-4" />
+        </Button>
         <ThemeToggle />
         <NotificationBell />
       </div>
@@ -143,6 +159,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       <main className="lg:pl-64 pt-14">
         <div className="p-6">{children}</div>
       </main>
+
+      <KeyboardShortcutsDialog
+        open={shortcutsOpen}
+        onOpenChange={setShortcutsOpen}
+      />
     </div>
   );
 }
