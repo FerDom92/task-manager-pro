@@ -1,98 +1,242 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Task Manager Pro - Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+REST API for Task Manager Pro built with NestJS, Prisma, and PostgreSQL.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Tech Stack
 
-## Description
+- **Framework:** NestJS 11
+- **ORM:** Prisma
+- **Database:** PostgreSQL
+- **Authentication:** JWT (Access + Refresh tokens)
+- **Validation:** class-validator
+- **Testing:** Jest
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Prerequisites
 
-## Project setup
+- Node.js 20+
+- PostgreSQL 14+
+- npm or yarn
+
+## Installation
+
+### 1. Clone and navigate
 
 ```bash
-$ npm install
+git clone <repo-url>
+cd task-manager-pro/backend
 ```
 
-## Compile and run the project
+### 2. Install dependencies
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
 ```
 
-## Run tests
+### 3. Configure environment
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+cp .env.example .env
 ```
 
-## Deployment
+Edit `.env` with your configuration:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+```env
+# Database
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/task_manager_pro"
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+# JWT Secrets (use strong random strings in production)
+JWT_SECRET="your-super-secret-jwt-key"
+JWT_REFRESH_SECRET="your-super-secret-refresh-key"
+
+# Server
+PORT=5000
+NODE_ENV=development
+```
+
+### 4. Setup database
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Run migrations
+npx prisma migrate dev
+
+# Generate Prisma client
+npx prisma generate
+
+# (Optional) View database in Prisma Studio
+npx prisma studio
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 5. Start the server
 
-## Resources
+```bash
+# Development (with hot reload)
+npm run start:dev
 
-Check out a few resources that may come in handy when working with NestJS:
+# Production
+npm run build
+npm run start:prod
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Server runs at `http://localhost:5000`
 
-## Support
+## Project Structure
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```
+src/
+├── auth/                    # Authentication module
+│   ├── auth.controller.ts   # Auth endpoints
+│   ├── auth.service.ts      # Auth business logic
+│   ├── jwt.strategy.ts      # JWT validation
+│   ├── user-seed.service.ts # Sample data on registration
+│   └── dto/                 # Data transfer objects
+├── users/                   # Users module
+├── tasks/                   # Tasks module
+│   ├── tasks.controller.ts
+│   ├── tasks.service.ts
+│   └── dto/
+├── projects/                # Projects module
+├── categories/              # Categories module
+├── common/                  # Shared utilities
+│   ├── prisma/              # Prisma service
+│   └── decorators/          # Custom decorators
+├── app.module.ts            # Root module
+└── main.ts                  # Entry point
+```
 
-## Stay in touch
+## API Endpoints
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Authentication
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/api/auth/register` | Register new user | No |
+| POST | `/api/auth/login` | Login and get tokens | No |
+| POST | `/api/auth/refresh` | Refresh access token | No |
+| GET | `/api/auth/me` | Get current user profile | Yes |
+| PATCH | `/api/auth/me` | Update profile | Yes |
+| DELETE | `/api/auth/me` | Delete account | Yes |
+
+### Tasks
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | `/api/tasks` | List tasks with filters | Yes |
+| POST | `/api/tasks` | Create task | Yes |
+| GET | `/api/tasks/stats` | Get task statistics | Yes |
+| GET | `/api/tasks/:id` | Get task by ID | Yes |
+| PATCH | `/api/tasks/:id` | Update task | Yes |
+| DELETE | `/api/tasks/:id` | Delete task | Yes |
+
+**Query Parameters for GET /api/tasks:**
+- `status` - Filter by status (TODO, IN_PROGRESS, DONE)
+- `priority` - Filter by priority (LOW, MEDIUM, HIGH, URGENT)
+- `categoryId` - Filter by category
+- `projectId` - Filter by project
+- `search` - Search in title/description
+- `page` - Page number (default: 1)
+- `limit` - Items per page (default: 10)
+- `sortBy` - Sort field
+- `sortOrder` - asc or desc
+
+### Projects
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | `/api/projects` | List projects | Yes |
+| POST | `/api/projects` | Create project | Yes |
+| GET | `/api/projects/:id` | Get project | Yes |
+| PATCH | `/api/projects/:id` | Update project | Yes |
+| DELETE | `/api/projects/:id` | Delete project | Yes |
+| GET | `/api/projects/:id/tasks` | Get project tasks | Yes |
+| POST | `/api/projects/:id/members` | Add member | Yes |
+| DELETE | `/api/projects/:id/members/:memberId` | Remove member | Yes |
+
+### Categories
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | `/api/categories` | List categories | Yes |
+| POST | `/api/categories` | Create category | Yes |
+| DELETE | `/api/categories/:id` | Delete category | Yes |
+
+## Database Schema
+
+### Models
+
+- **User** - User accounts
+- **Task** - Tasks with status, priority, due dates
+- **Project** - Projects with team members
+- **Category** - Task categories
+- **ProjectMember** - Project membership with roles
+
+### Prisma Commands
+
+```bash
+# Create migration
+npx prisma migrate dev --name <migration_name>
+
+# Apply migrations
+npx prisma migrate deploy
+
+# Reset database
+npx prisma migrate reset
+
+# Generate client
+npx prisma generate
+
+# Open Prisma Studio
+npx prisma studio
+```
+
+## Available Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run start` | Start server |
+| `npm run start:dev` | Start with hot reload |
+| `npm run start:debug` | Start with debug |
+| `npm run start:prod` | Start production build |
+| `npm run build` | Build for production |
+| `npm run test` | Run unit tests |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run test:cov` | Run tests with coverage |
+| `npm run test:e2e` | Run e2e tests |
+| `npm run lint` | Run ESLint |
+| `npm run format` | Format with Prettier |
+
+## Testing
+
+```bash
+# Unit tests (21 tests)
+npm run test
+
+# Watch mode
+npm run test:watch
+
+# Coverage report
+npm run test:cov
+
+# E2E tests
+npm run test:e2e
+```
+
+## Authentication Flow
+
+1. **Register/Login** - Get `accessToken` and `refreshToken`
+2. **API Requests** - Include `Authorization: Bearer <accessToken>`
+3. **Token Refresh** - When access token expires, use `/api/auth/refresh` with refresh token
+4. **Logout** - Clear tokens on client side
+
+## Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `DATABASE_URL` | PostgreSQL connection string | Yes |
+| `JWT_SECRET` | Secret for access tokens | Yes |
+| `JWT_REFRESH_SECRET` | Secret for refresh tokens | Yes |
+| `PORT` | Server port | No (default: 5000) |
+| `NODE_ENV` | Environment | No (default: development) |
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+MIT
