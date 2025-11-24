@@ -5,7 +5,7 @@ Full-stack task and project management application.
 ## Tech Stack
 
 - **Backend:** NestJS, Prisma, PostgreSQL, JWT Auth
-- **Frontend:** Next.js 15, React, Tailwind CSS, shadcn/ui
+- **Frontend:** Next.js 16, React, Tailwind CSS, shadcn/ui
 - **Features:** Kanban board, drag-and-drop, PWA, keyboard shortcuts
 
 ## Quick Start
