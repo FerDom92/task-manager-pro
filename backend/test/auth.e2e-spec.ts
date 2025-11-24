@@ -32,10 +32,20 @@ describe('AuthController (e2e)', () => {
   });
 
   afterAll(async () => {
-    // Clean up test user
-    await prisma.user.deleteMany({
+    // Clean up test user and all related data
+    const user = await prisma.user.findUnique({
       where: { email: testUser.email },
     });
+
+    if (user) {
+      // Delete in correct order due to foreign key constraints
+      await prisma.notification.deleteMany({ where: { userId: user.id } });
+      await prisma.task.deleteMany({ where: { createdById: user.id } });
+      await prisma.projectMember.deleteMany({ where: { userId: user.id } });
+      await prisma.project.deleteMany({ where: { ownerId: user.id } });
+      await prisma.user.delete({ where: { id: user.id } });
+    }
+
     await app.close();
   });
 

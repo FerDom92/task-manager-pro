@@ -47,9 +47,14 @@ describe('TasksController (e2e)', () => {
   });
 
   afterAll(async () => {
-    // Clean up
-    await prisma.task.deleteMany({ where: { createdById: userId } });
-    await prisma.user.deleteMany({ where: { email: testUser.email } });
+    // Clean up in correct order due to foreign key constraints
+    if (userId) {
+      await prisma.notification.deleteMany({ where: { userId } });
+      await prisma.task.deleteMany({ where: { createdById: userId } });
+      await prisma.projectMember.deleteMany({ where: { userId } });
+      await prisma.project.deleteMany({ where: { ownerId: userId } });
+      await prisma.user.deleteMany({ where: { email: testUser.email } });
+    }
     await app.close();
   });
 

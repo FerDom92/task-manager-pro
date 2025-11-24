@@ -1,12 +1,11 @@
 # Task Manager Pro
 
-Full-stack task and project management application with Kanban board, drag-and-drop, and real-time collaboration features.
+Full-stack task and project management application.
 
 ## Tech Stack
 
 - **Backend:** NestJS, Prisma, PostgreSQL, JWT Auth
 - **Frontend:** Next.js 16, React 19, Tailwind CSS, shadcn/ui, Zustand
-- **Features:** Kanban board, drag-and-drop, PWA, keyboard shortcuts
 
 ## Prerequisites
 
