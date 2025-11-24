@@ -13,13 +13,13 @@ interface KeyboardShortcutsDialogProps {
 }
 
 const shortcuts = [
-  { keys: ['N'], description: 'Create new task' },
-  { keys: ['D'], description: 'Go to dashboard' },
-  { keys: ['T'], description: 'Go to tasks' },
-  { keys: ['P'], description: 'Go to projects' },
-  { keys: ['Ctrl', 'K'], description: 'Focus search' },
-  { keys: ['Ctrl', '\\'], description: 'Toggle theme' },
   { keys: ['?'], description: 'Show keyboard shortcuts' },
+  { keys: ['g', 'd'], description: 'Go to Dashboard' },
+  { keys: ['g', 't'], description: 'Go to Tasks' },
+  { keys: ['g', 'p'], description: 'Go to Projects' },
+  { keys: ['g', 'c'], description: 'Go to Categories' },
+  { keys: ['g', 's'], description: 'Go to Settings' },
+  { keys: ['Esc'], description: 'Close dialog' },
 ];
 
 export function KeyboardShortcutsDialog({

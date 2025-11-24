@@ -21,15 +21,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Task, Category } from '@/types';
+import type { Task, Category, Project } from '@/types';
 
 const taskSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200),
+  title: z.string().min(1, 'Title is required').max(200, 'Title must be less than 200 characters'),
   description: z.string().max(2000).optional(),
   status: z.enum(['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE', 'CANCELLED']),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
   dueDate: z.string().optional(),
   categoryId: z.string().optional(),
+  projectId: z.string().optional(),
 });
 
 type TaskFormData = z.infer<typeof taskSchema>;
@@ -37,6 +38,7 @@ type TaskFormData = z.infer<typeof taskSchema>;
 interface TaskFormProps {
   task?: Task;
   categories: Category[];
+  projects?: Project[];
   onSubmit: (data: TaskFormData) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
@@ -46,6 +48,7 @@ interface TaskFormProps {
 export function TaskForm({
   task,
   categories,
+  projects = [],
   onSubmit,
   onCancel,
   isLoading,
@@ -53,6 +56,7 @@ export function TaskForm({
 }: TaskFormProps) {
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
+    mode: 'onChange',
     defaultValues: {
       title: task?.title || '',
       description: task?.description || '',
@@ -60,20 +64,38 @@ export function TaskForm({
       priority: (task?.priority as TaskFormData['priority']) || 'MEDIUM',
       dueDate: task?.dueDate ? task.dueDate.split('T')[0] : '',
       categoryId: task?.categoryId || '',
+      projectId: task?.projectId || '',
     },
   });
 
+  const handleSubmit = async (data: TaskFormData) => {
+    const cleanData = {
+      ...data,
+      dueDate: data.dueDate || undefined,
+      categoryId: data.categoryId || undefined,
+      projectId: data.projectId || undefined,
+    };
+    await onSubmit(cleanData);
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="title"
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem>
-              <FormLabel>Title</FormLabel>
+              <FormLabel className={fieldState.error ? 'text-destructive' : ''}>
+                Title <span className="text-destructive">*</span>
+              </FormLabel>
               <FormControl>
-                <Input placeholder="Task title" {...field} disabled={readOnly} />
+                <Input
+                  placeholder="Task title"
+                  {...field}
+                  disabled={readOnly}
+                  className={fieldState.error ? 'border-destructive focus-visible:ring-destructive' : ''}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -175,30 +197,30 @@ export function TaskForm({
 
           <FormField
             control={form.control}
-            name="categoryId"
+            name="projectId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Category</FormLabel>
+                <FormLabel>Project</FormLabel>
                 <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  onValueChange={(value) => field.onChange(value === 'none' ? '' : value)}
+                  defaultValue={field.value || 'none'}
                   disabled={readOnly}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
+                      <SelectValue placeholder="Select project" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
+                    <SelectItem value="none">No Project</SelectItem>
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
                         <div className="flex items-center gap-2">
                           <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: cat.color }}
+                            className="w-3 h-3 rounded"
+                            style={{ backgroundColor: project.color || '#6366f1' }}
                           />
-                          {cat.name}
+                          {project.name}
                         </div>
                       </SelectItem>
                     ))}
@@ -209,6 +231,42 @@ export function TaskForm({
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="categoryId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Category</FormLabel>
+              <Select
+                onValueChange={(value) => field.onChange(value === 'none' ? '' : value)}
+                defaultValue={field.value || 'none'}
+                disabled={readOnly}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="none">No Category</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: cat.color }}
+                        />
+                        {cat.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <div className="flex justify-end gap-2 pt-4">
           <Button type="button" variant="outline" onClick={onCancel}>

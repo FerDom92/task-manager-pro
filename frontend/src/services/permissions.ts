@@ -17,12 +17,12 @@ export interface ProjectPermissions {
 
 export const permissionsService = {
   async getTaskPermissions(taskId: string): Promise<TaskPermissions> {
-    const response = await api.get<TaskPermissions>(`/api/tasks/${taskId}/permissions`);
+    const response = await api.get<TaskPermissions>(`/tasks/${taskId}/permissions`);
     return response.data;
   },
 
   async getProjectPermissions(projectId: string): Promise<ProjectPermissions> {
-    const response = await api.get<ProjectPermissions>(`/api/projects/${projectId}/permissions`);
+    const response = await api.get<ProjectPermissions>(`/projects/${projectId}/permissions`);
     return response.data;
   },
 };

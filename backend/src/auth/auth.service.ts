@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../config/prisma.service';
 import { RegisterDto, LoginDto } from './dto';
+import { UserSeedService } from './user-seed.service';
 
 interface TokenPayload {
   sub: string;
@@ -37,6 +38,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private userSeedService: UserSeedService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -57,6 +59,11 @@ export class AuthService {
         firstName: dto.firstName,
         lastName: dto.lastName,
       },
+    });
+
+    // Create sample data for new user (non-blocking)
+    this.userSeedService.createSampleData(user.id).catch((error) => {
+      console.error('Failed to create sample data for user:', error);
     });
 
     const tokens = await this.generateTokens(user);
@@ -128,6 +135,59 @@ export class AuthService {
     }
 
     return this.excludePassword(user);
+  }
+
+  async updateProfile(
+    userId: string,
+    dto: { firstName?: string; lastName?: string },
+  ) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+      },
+    });
+
+    return this.excludePassword(updatedUser);
+  }
+
+  async deleteAccount(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Delete user's data in order (to avoid foreign key constraints)
+    await this.prisma.$transaction(async (tx) => {
+      // Delete notifications
+      await tx.notification.deleteMany({ where: { userId } });
+
+      // Delete tasks created by user
+      await tx.task.deleteMany({ where: { createdById: userId } });
+
+      // Remove from project members
+      await tx.projectMember.deleteMany({ where: { userId } });
+
+      // Delete projects owned by user
+      await tx.project.deleteMany({ where: { ownerId: userId } });
+
+      // Finally delete the user
+      await tx.user.delete({ where: { id: userId } });
+    });
+
+    return { message: 'Account deleted successfully' };
   }
 
   private async generateTokens(user: UserWithPassword): Promise<AuthTokens> {

@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   CheckSquare,
   FolderKanban,
+  Tag,
   Settings,
   LogOut,
   Menu,
@@ -24,25 +25,40 @@ import { useAuthStore } from '@/store/auth';
 import { NotificationBell } from '@/components/features/notification-bell';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { KeyboardShortcutsDialog } from '@/components/features/keyboard-shortcuts-dialog';
-import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { useState } from 'react';
+import { useKeyboardShortcuts, useSequenceShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Tasks', href: '/dashboard/tasks', icon: CheckSquare },
   { name: 'Projects', href: '/dashboard/projects', icon: FolderKanban },
+  { name: 'Categories', href: '/dashboard/categories', icon: Tag },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, logout } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
+  // Single key shortcuts
   useKeyboardShortcuts([
     { key: '?', action: () => setShortcutsOpen(true), description: 'Show shortcuts' },
   ]);
+
+  // Sequence shortcuts (g + key for navigation)
+  const sequences = useMemo(() => ({
+    'g d': () => router.push('/dashboard'),
+    'g t': () => router.push('/dashboard/tasks'),
+    'g p': () => router.push('/dashboard/projects'),
+    'g c': () => router.push('/dashboard/categories'),
+    'g s': () => router.push('/dashboard/settings'),
+  }), [router]);
+
+  useSequenceShortcuts(sequences);
 
   const initials = user
     ? `${user.firstName?.[0] || ''}${user.lastName?.[0] || user.email[0]}`.toUpperCase()
@@ -116,33 +132,28 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             })}
           </nav>
 
-          <div className="p-4 border-t">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start gap-3 px-3"
-                >
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>{initials}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col items-start text-sm">
-                    <span className="font-medium">
-                      {user?.firstName || user?.email}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {user?.email}
-                    </span>
-                  </div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56">
-                <DropdownMenuItem onClick={logout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <div className="p-4 border-t space-y-2">
+            <div className="flex items-center gap-3 px-3 py-2">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback>{initials}</AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col text-sm min-w-0 flex-1">
+                <span className="font-medium truncate">
+                  {user?.firstName || user?.email}
+                </span>
+                <span className="text-xs text-muted-foreground truncate">
+                  {user?.email}
+                </span>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              className="w-full justify-start gap-2"
+              onClick={logout}
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
           </div>
         </div>
       </aside>

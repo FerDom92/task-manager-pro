@@ -10,31 +10,31 @@ export interface CreateProjectData {
 
 export const projectsService = {
   async getAll(): Promise<Project[]> {
-    const response = await api.get<Project[]>('/api/projects');
+    const response = await api.get<Project[]>('/projects');
     return response.data;
   },
 
   async getOne(id: string): Promise<Project> {
-    const response = await api.get<Project>(`/api/projects/${id}`);
+    const response = await api.get<Project>(`/projects/${id}`);
     return response.data;
   },
 
   async create(data: CreateProjectData): Promise<Project> {
-    const response = await api.post<Project>('/api/projects', data);
+    const response = await api.post<Project>('/projects', data);
     return response.data;
   },
 
   async update(id: string, data: Partial<CreateProjectData>): Promise<Project> {
-    const response = await api.patch<Project>(`/api/projects/${id}`, data);
+    const response = await api.patch<Project>(`/projects/${id}`, data);
     return response.data;
   },
 
   async delete(id: string): Promise<void> {
-    await api.delete(`/api/projects/${id}`);
+    await api.delete(`/projects/${id}`);
   },
 
   async getTasks(id: string): Promise<Task[]> {
-    const response = await api.get<Task[]>(`/api/projects/${id}/tasks`);
+    const response = await api.get<Task[]>(`/projects/${id}/tasks`);
     return response.data;
   },
 
@@ -43,10 +43,10 @@ export const projectsService = {
     userId: string,
     role: string
   ): Promise<void> {
-    await api.post(`/api/projects/${projectId}/members`, { userId, role });
+    await api.post(`/projects/${projectId}/members`, { userId, role });
   },
 
   async removeMember(projectId: string, memberId: string): Promise<void> {
-    await api.delete(`/api/projects/${projectId}/members/${memberId}`);
+    await api.delete(`/projects/${projectId}/members/${memberId}`);
   },
 };

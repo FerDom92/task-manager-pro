@@ -57,10 +57,18 @@ export default function LoginPage() {
       const response = await authService.login(data);
       setAuth(response.user, response.accessToken, response.refreshToken);
       router.push('/dashboard');
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Invalid email or password'
-      );
+    } catch (err: unknown) {
+      // Handle Axios errors with user-friendly messages
+      const axiosError = err as { response?: { status?: number; data?: { message?: string } } };
+      if (axiosError?.response?.status === 401) {
+        setError('Invalid email or password. Please try again.');
+      } else if (axiosError?.response?.status === 400) {
+        setError(axiosError.response.data?.message || 'Please check your input.');
+      } else if (axiosError?.response?.status === 500) {
+        setError('Server error. Please try again later.');
+      } else {
+        setError('Unable to connect. Please check your internet connection.');
+      }
     } finally {
       setIsLoading(false);
     }

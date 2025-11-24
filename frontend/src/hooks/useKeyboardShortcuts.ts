@@ -1,5 +1,4 @@
 import { useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 
 interface ShortcutConfig {
   key: string;
@@ -9,6 +8,10 @@ interface ShortcutConfig {
   action: () => void;
   description: string;
 }
+
+// For sequence-based shortcuts (like "g d" for go to dashboard)
+let keySequence: string[] = [];
+let sequenceTimeout: NodeJS.Timeout | null = null;
 
 export function useKeyboardShortcuts(shortcuts: ShortcutConfig[]) {
   const handleKeyDown = useCallback(
@@ -24,9 +27,10 @@ export function useKeyboardShortcuts(shortcuts: ShortcutConfig[]) {
       }
 
       for (const shortcut of shortcuts) {
-        const keyMatch = event.key.toLowerCase() === shortcut.key.toLowerCase();
+        // For special characters like ?, match the key directly
+        const keyMatch = event.key === shortcut.key || event.key.toLowerCase() === shortcut.key.toLowerCase();
         const ctrlMatch = shortcut.ctrl ? event.ctrlKey || event.metaKey : !event.ctrlKey && !event.metaKey;
-        const shiftMatch = shortcut.shift ? event.shiftKey : !event.shiftKey;
+        const shiftMatch = shortcut.shift ? event.shiftKey : true;
         const altMatch = shortcut.alt ? event.altKey : !event.altKey;
 
         if (keyMatch && ctrlMatch && shiftMatch && altMatch) {
@@ -45,58 +49,70 @@ export function useKeyboardShortcuts(shortcuts: ShortcutConfig[]) {
   }, [handleKeyDown]);
 }
 
-// Global app shortcuts hook
-export function useGlobalShortcuts({
-  onNewTask,
-  onSearch,
-  onToggleTheme,
-}: {
-  onNewTask?: () => void;
-  onSearch?: () => void;
-  onToggleTheme?: () => void;
-}) {
-  const router = useRouter();
+// Sequence-based shortcuts hook (like "g d" for go to dashboard)
+export function useSequenceShortcuts(sequences: Record<string, () => void>) {
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement;
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable
+      ) {
+        return;
+      }
 
-  const shortcuts: ShortcutConfig[] = [
-    {
-      key: 'n',
-      action: () => onNewTask?.(),
-      description: 'Create new task',
-    },
-    {
-      key: 'k',
-      ctrl: true,
-      action: () => onSearch?.(),
-      description: 'Focus search',
-    },
-    {
-      key: 'd',
-      action: () => router.push('/dashboard'),
-      description: 'Go to dashboard',
-    },
-    {
-      key: 't',
-      action: () => router.push('/dashboard/tasks'),
-      description: 'Go to tasks',
-    },
-    {
-      key: 'p',
-      action: () => router.push('/dashboard/projects'),
-      description: 'Go to projects',
-    },
-    ...(onToggleTheme
-      ? [
-          {
-            key: '\\',
-            ctrl: true,
-            action: onToggleTheme,
-            description: 'Toggle theme',
-          },
-        ]
-      : []),
-  ];
+      // Ignore modifier keys alone
+      if (['Control', 'Alt', 'Shift', 'Meta'].includes(event.key)) {
+        return;
+      }
 
-  useKeyboardShortcuts(shortcuts);
+      // Don't capture if modifiers are pressed (except shift for ?)
+      if (event.ctrlKey || event.altKey || event.metaKey) {
+        return;
+      }
 
-  return shortcuts;
+      const key = event.key.toLowerCase();
+
+      // Clear previous timeout
+      if (sequenceTimeout) {
+        clearTimeout(sequenceTimeout);
+      }
+
+      // Add to sequence
+      keySequence.push(key);
+
+      // Check for matching sequence
+      const seq = keySequence.join(' ');
+
+      if (sequences[seq]) {
+        event.preventDefault();
+        sequences[seq]();
+        keySequence = [];
+        return;
+      }
+
+      // Keep only last 2 keys for sequence matching
+      if (keySequence.length > 2) {
+        keySequence = keySequence.slice(-2);
+      }
+
+      // Clear sequence after 1 second of inactivity
+      sequenceTimeout = setTimeout(() => {
+        keySequence = [];
+      }, 1000);
+    },
+    [sequences]
+  );
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      if (sequenceTimeout) {
+        clearTimeout(sequenceTimeout);
+      }
+    };
+  }, [handleKeyDown]);
 }
+

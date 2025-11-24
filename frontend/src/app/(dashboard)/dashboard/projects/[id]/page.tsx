@@ -76,6 +76,10 @@ export default function ProjectDetailPage({
     }
   };
 
+  const userRole = useProjectRole(project?.members);
+  const canEdit = canManageProject(userRole);
+  const canDelete = canDeleteProject(userRole);
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
@@ -83,10 +87,6 @@ export default function ProjectDetailPage({
       </div>
     );
   }
-
-  const userRole = useProjectRole(project?.members);
-  const canEdit = canManageProject(userRole);
-  const canDelete = canDeleteProject(userRole);
 
   if (!project) return null;
 

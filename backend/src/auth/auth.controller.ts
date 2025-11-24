@@ -3,6 +3,8 @@ import {
   Post,
   Body,
   Get,
+  Patch,
+  Delete,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -37,5 +39,21 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   getProfile(@CurrentUser('id') userId: string) {
     return this.authService.getProfile(userId);
+  }
+
+  @Patch('me')
+  @UseGuards(JwtAuthGuard)
+  updateProfile(
+    @CurrentUser('id') userId: string,
+    @Body() dto: { firstName?: string; lastName?: string },
+  ) {
+    return this.authService.updateProfile(userId, dto);
+  }
+
+  @Delete('me')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  deleteAccount(@CurrentUser('id') userId: string) {
+    return this.authService.deleteAccount(userId);
   }
 }

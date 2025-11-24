@@ -24,9 +24,11 @@ import { NoTasksEmpty, NoResultsEmpty } from '@/components/ui/empty-state';
 import { KanbanBoard } from '@/components/tasks/KanbanBoard';
 import { tasksService, type TaskFilters } from '@/services/tasks';
 import { categoriesService } from '@/services/categories';
+import { projectsService } from '@/services/projects';
 import { permissionsService } from '@/services/permissions';
-import type { Task, Category, TaskPermissions, TaskStatus } from '@/types';
+import type { Task, Category, Project, TaskPermissions, TaskStatus } from '@/types';
 import { useAuthStore } from '@/store/auth';
+import { toast } from 'sonner';
 
 type ViewMode = 'grid' | 'kanban';
 
@@ -34,6 +36,7 @@ export default function TasksPage() {
   const { user } = useAuthStore();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>();
@@ -71,12 +74,22 @@ export default function TasksPage() {
     }
   };
 
+  const loadProjects = async () => {
+    try {
+      const data = await projectsService.getAll();
+      setProjects(data);
+    } catch (error) {
+      console.error('Failed to load projects:', error);
+    }
+  };
+
   useEffect(() => {
     loadTasks();
   }, [loadTasks]);
 
   useEffect(() => {
     loadCategories();
+    loadProjects();
   }, []);
 
   const handleCreateTask = async (data: Parameters<typeof tasksService.create>[0]) => {
@@ -84,8 +97,10 @@ export default function TasksPage() {
       await tasksService.create(data);
       setIsDialogOpen(false);
       loadTasks();
+      toast.success('Task created successfully');
     } catch (error) {
       console.error('Failed to create task:', error);
+      toast.error('Failed to create task');
     }
   };
 
@@ -96,8 +111,10 @@ export default function TasksPage() {
       setIsDialogOpen(false);
       setSelectedTask(undefined);
       loadTasks();
+      toast.success('Task updated successfully');
     } catch (error) {
       console.error('Failed to update task:', error);
+      toast.error('Failed to update task');
     }
   };
 
@@ -106,8 +123,10 @@ export default function TasksPage() {
     try {
       await tasksService.delete(id);
       loadTasks();
+      toast.success('Task deleted');
     } catch (error) {
       console.error('Failed to delete task:', error);
+      toast.error('Failed to delete task');
     }
   };
 
@@ -294,6 +313,7 @@ export default function TasksPage() {
           <TaskForm
             task={selectedTask}
             categories={categories}
+            projects={projects}
             onSubmit={selectedTask ? handleUpdateTask : handleCreateTask}
             onCancel={() => setIsDialogOpen(false)}
             readOnly={!!(selectedTask && taskPermissions && !taskPermissions.canUpdate)}

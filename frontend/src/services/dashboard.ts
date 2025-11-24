@@ -26,12 +26,12 @@ export interface ActivityItem {
 
 export const dashboardService = {
   async getStats(): Promise<DashboardStats> {
-    const response = await api.get<DashboardStats>('/api/dashboard/stats');
+    const response = await api.get<DashboardStats>('/dashboard/stats');
     return response.data;
   },
 
   async getActivity(): Promise<ActivityItem[]> {
-    const response = await api.get<ActivityItem[]>('/api/dashboard/activity');
+    const response = await api.get<ActivityItem[]>('/dashboard/activity');
     return response.data;
   },
 };
