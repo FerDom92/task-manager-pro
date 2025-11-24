@@ -68,7 +68,9 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const { confirmPassword: _, ...registerData } = data;
+      const { confirmPassword, ...registerData } = data;
+      // confirmPassword is only used for validation, not sent to API
+      void confirmPassword;
       const response = await authService.register(registerData);
       setAuth(response.user, response.accessToken, response.refreshToken);
       router.push('/dashboard');
